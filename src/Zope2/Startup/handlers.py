@@ -53,10 +53,6 @@ def session_timeout_minutes(value):
     value not in (None, default) and _setenv('ZSESSION_TIMEOUT_MINS', value)
     return value
 
-def large_file_threshold(value):
-    import ZServer
-    ZServer.LARGE_FILE_THRESHOLD = value
-
 def publisher_profile_file(value):
     value is not None and _setenv('PROFILE_PUBLISHER', value)
     from ZPublisher.Publish import install_profiling
@@ -66,14 +62,6 @@ def publisher_profile_file(value):
 def http_realm(value):
     value is not None and _setenv('Z_REALM', value)
     return value
-
-def max_listen_sockets(value):
-    import ZServer
-    ZServer.CONNECTION_LIMIT = value
-
-def cgi_maxlen(value):
-    import cgi
-    cgi.maxlen = value
 
 def http_header_max_length(value):
     return value
@@ -118,18 +106,6 @@ def root_handler(config):
         if d not in L:
             L.append(d)
     Products.__path__[:] = L
-
-    # if no servers are defined, create default http server and ftp server
-    if not config.servers:
-        config.servers = []
-
-    # prepare servers:
-    for factory in config.servers:
-        factory.prepare(config.ip_address or '',
-                        config.dns_resolver,
-                        "Zope2",
-                        config.cgi_environment,
-                        config.port_base)
 
     # set up trusted proxies
     if config.trusted_proxies:

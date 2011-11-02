@@ -7,7 +7,6 @@
   <import package="ZConfig.components.logger" file="handlers.xml"/>
   <import package="ZConfig.components.logger" file="eventlog.xml"/>
   <import package="ZODB"/>
-  <import package="ZServer"/>
   <import package="tempstorage"/>
   <import package="Zope2.Startup" file="warnfilter.xml"/>
 
@@ -25,34 +24,6 @@
                   type="ZConfig.logger.handler"
                   attribute="handlers"
                   required="yes"/>
-  </sectiontype>
-
-  <sectiontype name="cgi-environment"
-               datatype=".cgi_environment"
-               keytype="identifier">
-    <description>
-     A section which allows you to define simple key-value pairs which
-     will extend the CGI environment variables exposed by ZServer.
-    </description>
-    <key name="+" attribute="environ">
-      <description>
-        Use any key/value pair, e.g. 'HTTPS_PORT 443'
-      </description>
-    </key>
-  </sectiontype>
-
-  <sectiontype name="environment"
-               datatype=".cgi_environment"
-               keytype="identifier">
-    <description>
-     A section which allows you to define simple key-value pairs which
-     will be used as environment variable settings during startup.
-    </description>
-    <key name="+" attribute="environ">
-      <description>
-        Use any key/value pair, e.g. 'MY_PRODUCT_ENVVAR foo_bar'
-      </description>
-    </key>
   </sectiontype>
 
   <sectiontype name="zoperunner">
@@ -298,15 +269,6 @@
     </description>
   </multisection>
 
-  <section type="environment" attribute="environment" name="*">
-    <description>
-     A section which allows a user to define arbitrary key-value pairs for
-     use as environment variables during Zope's run cycle.  It
-     is not recommended to set system-related environment variables such as
-     PYTHONPATH within this section.
-    </description>
-  </section>
-
   <key name="instancehome" datatype="existing-directory"
        required="yes">
     <description>
@@ -428,14 +390,6 @@
     <metadefault>us</metadefault>
   </key>
 
-  <key name="zserver-threads" datatype="integer" default="2">
-     <description>
-     Specify the number of threads that Zope's ZServer web server will use
-     to service requests. The default is 2.
-    </description>
-    <metadefault>2</metadefault>
-  </key>
-
   <key name="python-check-interval" datatype="integer" default="1000">
     <description>
       Value passed to Python's sys.setcheckinterval() function.  The
@@ -443,16 +397,6 @@
       checks for keyboard interrupts.  Setting this to higher values
       also reduces the frequency of potential thread switches, which
       can improve the performance of a busy server.
-    </description>
-  </key>
-
-  <key name="zserver-read-only-mode" datatype="boolean" default="off">
-    <description>
-      If this variable is set, then the server will not create or write
-      to any log, pid, or lock files when running.  Note that this option
-      does *not* govern opening storages in read-only mode:  for that
-      use, please use the appropriate flag in the section which configures
-      each storage.
     </description>
   </key>
 
@@ -465,72 +409,11 @@
     <metadefault>unset</metadefault>
   </key>
 
-  <section type="cgi-environment" attribute="cgi_environment" name="*">
-    <description>
-     A section which allows a user to define arbitrary key-value pairs for
-     use as the initial CGI environment variables. This setting is useful
-     when you want to proxy requests from another web server to Zserver,
-     and would like Zserver's CGI environment to reflect the CGI
-     environment of the other web server.
-    </description>
-  </section>
-
-  <key name="cgi-maxlen" default="0" handler="cgi_maxlen" datatype="integer">
-    <description>
-     Set the cgi.maxlen parameter to limit the number of data passed to
-     cgi.escape(). This is helpful to prevent DoS attacks. Set the parameter
-     to 0 for no restrictions.
-    </description>
-  </key>
-
-  <key name="http-header-max-length" default="8192" handler="http_header_max_length" datatype="integer">
-    <description>
-     Maximum size of received HTTP header being processed by Zope
-    </description>
-  </key>
-
-  <key name="enable-ms-public-header" datatype="boolean" handler="enable_ms_public_header" default="off">
-     <description>
-     Set this directive to 'on' to enable sending the "Public" header
-     in response to an WebDAV OPTIONS request.
-
-     Though recent WebDAV drafts mention this header, the original
-     WebDAV RFC did not mention it as part of the standard. Very few
-     web servers out there include this header in their replies, most
-     notably IIS and Netscape Enterprise 3.6.
-
-     Since many best practices documents out in the web mention
-     turning off this header with the subject of "Mask Your Web Server
-     For Enhanced Security", this setting is off by
-     default. Presumably malicious people might take the presence of
-     this header as indication of an IIS Web Server and try to attack
-     your site, so be careful when turning it on.
-
-     Recent versions of Microsoft Web Folders, updated after January
-     2005, *do* require this header to be present in reply to the
-     OPTIONS WebDAV request.
-     (http://www.redmountainsw.com/wordpress/archives/webfolders-zope)
-
-     To get a recent Microsoft Web Folders implementation, refer to
-     Microsoft KB Article 907306.
-     (Software Update for Web Folders: May 18, 2007).
-     </description>
-     <metadefault>off</metadefault>
-  </key>
-
   <key name="dns-server" datatype=".dns_resolver" attribute="dns_resolver">
     <description>
      Specify the IP address of your DNS server in order to cause resolved
      hostnames to be written to Zope's access log. By default, Zope will
      not resolve hostnames unless this is set.
-    </description>
-  </key>
-
-  <key name="ip-address" datatype="ipaddr-or-hostname">
-    <description>
-     The default IP address on which Zope's various server protocol
-     implementations will listen for requests. If this is unset, Zope
-     will listen on all IP addresses supported by the machine.
     </description>
   </key>
 
@@ -707,35 +590,6 @@
        want them logged, or use any other logger level.
      </description>
      <metadefault>info</metadefault>
-  </key>
-
-  <!-- max-listen-sockets and large-file-threshold should really go
-       into the ZServer package, but I can't quite figure out how to
-       put it there -->
-
-  <key name="max-listen-sockets" datatype="integer"
-       default="1000">
-     <description>
-       The maximum number of sockets that ZServer will attempt to open
-       in order to service incoming connections.
-     </description>
-  </key>
-
-  <key name="large-file-threshold" datatype="byte-size"
-       handler="large_file_threshold" default="512KB">
-     <description>
-       Requests bigger than this size get saved into a temporary file
-       instead of being read completely into memory.
-     </description>
-  </key>
-
-  <multisection type="ZServer.server" name="*" attribute="servers"/>
-
-  <key name="port-base" datatype="integer" default="0">
-    <description>
-      Base port number that gets added to the specific port numbers
-      specified for the individual servers.
-    </description>
   </key>
 
   <multisection type="ZODB.Database" name="+" attribute="databases">

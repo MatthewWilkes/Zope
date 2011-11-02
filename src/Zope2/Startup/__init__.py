@@ -72,18 +72,11 @@ class ZopeStarter:
         self.setupLocale()
         self.setupSecurityOptions()
         self.setupPublisher()
-        # Start ZServer servers before we drop privileges so we can bind to
-        # "low" ports:
-        self.setupZServer()
-        self.setupServers()
         # drop privileges after setting up servers
         self.dropPrivileges()
         self.setupFinalLogging()
-        self.makeLockFile()
-        self.makePidFile()
         self.setupInterpreter()
         self.startZope()
-        self.serverListen()
         from App.config import getConfiguration
         config = getConfiguration()
         self.registerSignals()
@@ -99,10 +92,8 @@ class ZopeStarter:
         try:
             from App.config import getConfiguration
             config = getConfiguration()
-            import ZServer
             import Lifetime
             Lifetime.loop()
-            sys.exit(ZServer.exit_code)
         finally:
             self.shutdown()
 
@@ -184,14 +175,6 @@ class ZopeStarter:
         ZServer.setNumberOfThreads(self.cfg.zserver_threads)
         ZServer.CONNECTION_LIMIT = self.cfg.max_listen_sockets
 
-    def serverListen(self):
-        for server in self.cfg.servers:
-            if hasattr(server, 'fast_listen'):
-                # This one has the delayed listening feature
-                if not server.fast_listen:
-                    server.fast_listen = True
-                    server.listen(1024) # same value as defined in medusa.http_server.py  
-
     def setupServers(self):
         socket_err = (
             'There was a problem starting a server of type "%s". '
@@ -227,9 +210,6 @@ class ZopeStarter:
     def setupConfiguredLoggers(self):
         # Must happen after ZopeStarter.setupInitialLogging()
         self.event_logger.removeHandler(self.startup_handler)
-        if self.cfg.zserver_read_only_mode:
-            # no log files written in read only mode
-            return
 
         if self.cfg.eventlog is not None:
             self.cfg.eventlog()
@@ -257,58 +237,6 @@ class ZopeStarter:
         # Import Zope
         import Zope2
         Zope2.startup()
-
-    def makeLockFile(self):
-        if not self.cfg.zserver_read_only_mode:
-            # lock_file is used for the benefit of zctl-like systems, so they
-            # can tell whether Zope is already running before attempting to
-            # fire it off again.
-            #
-            # We aren't concerned about locking the file to protect against
-            # other Zope instances running from our CLIENT_HOME, we just
-            # try to lock the file to signal that zctl should not try to
-            # start Zope if *it* can't lock the file; we don't panic
-            # if we can't lock it.
-            # we need a separate lock file because on win32, locks are not
-            # advisory, otherwise we would just use the pid file
-            from Zope2.Startup.misc.lock_file import lock_file
-            lock_filename = self.cfg.lock_filename
-            try:
-                if os.path.exists(lock_filename):
-                    os.unlink(lock_filename)
-                self.lockfile = open(lock_filename, 'w')
-                lock_file(self.lockfile)
-                self.lockfile.write(str(os.getpid()))
-                self.lockfile.flush()
-            except IOError:
-                pass
-
-    def makePidFile(self):
-        if not self.cfg.zserver_read_only_mode:
-            # write the pid into the pidfile if possible
-            try:
-                if os.path.exists(self.cfg.pid_filename):
-                    os.unlink(self.cfg.pid_filename)
-                f = open(self.cfg.pid_filename, 'w')
-                f.write(str(os.getpid()))
-                f.close()
-            except IOError:
-                pass
-
-    def unlinkPidFile(self):
-        if not self.cfg.zserver_read_only_mode:
-            try:
-                os.unlink(self.cfg.pid_filename)
-            except OSError:
-                pass
-
-    def unlinkLockFile(self):
-        if not self.cfg.zserver_read_only_mode:
-            try:
-                self.lockfile.close()
-                os.unlink(self.cfg.lock_filename)
-            except OSError:
-                pass
 
     def setupInterpreter(self):
         """ make changes to the python interpreter environment """

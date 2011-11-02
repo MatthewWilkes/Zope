@@ -28,6 +28,9 @@ Bugs Fixed
 Features Added
 ++++++++++++++
 
+- Removed ZServer.  There will be more changes that are needed to migrate 
+  asyncore and various other features that used servers to a WSGI environment.
+
 - Optimized the `OFS.Traversable.getPhysicalPath` method to avoid excessive
   amounts of method calls.
 

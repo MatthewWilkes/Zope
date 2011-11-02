@@ -39,9 +39,6 @@ def datetime_format(value):
             )
     return value
 
-def cgi_environment(section):
-    return section.environ
-
 # Datatype for the access and trace logs
 # (the loghandler datatypes come from the zLOG package)
 
@@ -62,8 +59,7 @@ class LoggerFactory(logger.LoggerFactory):
 # DNS resolver
 
 def dns_resolver(hostname):
-    from ZServer.medusa import resolver
-    return resolver.caching_resolver(hostname)
+    return NotImplemented
 
 # mount-point definition
 
@@ -120,10 +116,8 @@ class zdaemonEnvironDict(UserDict):
 def root_config(section):
     from ZConfig import ConfigurationError
     from ZConfig.matcher import SectionValue
-    if section.environment is None:
-        section.environment = zdaemonEnvironDict()
-    if section.cgi_environment is None:
-        section.cgi_environment = zdaemonEnvironDict()
+    section.environment = zdaemonEnvironDict()
+    section.cgi_environment = zdaemonEnvironDict()
     if section.clienthome is None:
         section.clienthome = os.path.join(section.instancehome, "var")
     # set up defaults for pid_filename and lock_filename if they're
