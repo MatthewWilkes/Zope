@@ -1,0 +1,7 @@
+*.pyc
+
+bin/
+develop-eggs/
+eggs/
+parts/
+src/Zope2.egg-info/
