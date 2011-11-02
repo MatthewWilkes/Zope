@@ -1,0 +1,10 @@
+.*
+*.py?
+
+bin/
+develop-eggs/
+eggs/
+include/
+lib/
+parts/
+src/Zope2.egg-info/
